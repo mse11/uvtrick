@@ -5,6 +5,7 @@ import cloudpickle
 import subprocess
 import tempfile
 import textwrap
+import re
 from collections.abc import Callable
 from pathlib import Path
 
@@ -116,8 +117,14 @@ class Env:
         Load the args/kwargs from an 'inputs' cloudpickle, call a Python function
         with them, and store the result in an 'output' cloudpickle.
         """
+
+        def escape_win_path(path: Path) -> str:
+            path_str: str = str(path)
+            win_like: bool = bool(re.match(r"^[a-zA-Z]:\\", path_str))
+            return path_str.replace('\\', '\\\\') if win_like else path_str
+        
         func_name = func.__name__
-        inputs_path, output_path = self.inputs, self.output
+        inputs_path, output_path = escape_win_path(self.inputs), escape_win_path(self.output)
         return textwrap.dedent(f"""
         if __name__ == "__main__":
             import cloudpickle
