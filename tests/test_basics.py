@@ -1,6 +1,9 @@
 """When I hacks this bad, I write tests."""
 
 import pytest
+import platform
+
+from pathlib import Path
 
 from uvtrick import Env, load
 
@@ -56,3 +59,25 @@ def test_env_works2():
             "dictionary": {"a": 1, "b": 2},
             "string": "hello",
         }
+
+def test_path_escape():
+    
+    def helper(path_base: str) -> None:
+        file_in  = path_base + r"pickled_inputs.pickle"
+        file_out = path_base + r"tmp.pickle"
+    
+        e = Env("")
+        e.temp_dir = Path(path_base)
+    
+        def func():
+            print('me')
+    
+        assert file_in  in e.maincall(func)
+        assert file_out in e.maincall(func)
+
+    if platform.system() == "Windows":
+        helper(r'C:\\win\\path\\big\\')
+        helper(r'd:\\win\\path\\small\\')
+    else:
+        helper(r'/linux/path/')
+
